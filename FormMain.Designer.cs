@@ -49,7 +49,7 @@
             Controls.Add(textBoxOutput);
             DoubleBuffered = true;
             Name = "FormMain";
-            Text = "LogParser";
+            Text = "Log Parser";
             Load += FormMain_Load;
             ResumeLayout(false);
             PerformLayout();

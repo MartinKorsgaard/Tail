@@ -1,15 +1,12 @@
 using System.Diagnostics;
-using System.IO;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Reflection.Metadata.BlobBuilder;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+//using static System.Net.Mime.MediaTypeNames;
 
 namespace LogParser
 {
     public partial class FormMain : Form
     {
-        private static string _file = @"C:\Windows\CCM\Logs\SensorManagedProvider.Log";
+        private static string _file;
         private static long _lastPosition;
         private static bool _doNotRead;
 
@@ -22,43 +19,59 @@ namespace LogParser
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            if (!File.Exists(_file)) return;
+            OpenFileDialog dialog = new OpenFileDialog();
 
-            FileInfo fi = new FileInfo(_file);
+            dialog.Filter = "Log Files|*.log|Text files|*.txt|All files|*.*";
+            dialog.Multiselect = false;
+            dialog.CheckFileExists = true;
+            dialog.CheckPathExists = true;
 
-            string? path = fi.Directory?.FullName;
-            string filename = fi.Name;
+            DialogResult result = dialog.ShowDialog();
 
-            // start reading at end of file
-            _lastPosition = fi.Length;
-
-            if (path != null)
+            if (result == DialogResult.OK)
             {
-                _watcher = new FileSystemWatcher(path);
+                _file = dialog.FileName;
 
-                // maximize buffer
-                _watcher.InternalBufferSize = 65536;
+                if (!File.Exists(_file)) return;
 
-                _watcher.NotifyFilter = NotifyFilters.Attributes
-                                     | NotifyFilters.CreationTime
-                                     | NotifyFilters.DirectoryName
-                                     | NotifyFilters.FileName
-                                     | NotifyFilters.LastAccess
-                                     | NotifyFilters.LastWrite
-                                     | NotifyFilters.Security
-                                     | NotifyFilters.Size;
+                FileInfo fi = new FileInfo(_file);
 
-                _watcher.Changed += Watcher_Changed;
-                _watcher.Created += Watcher_Created;
-                _watcher.Deleted += Watcher_Deleted;
-                _watcher.Renamed += Watcher_Renamed;
-                _watcher.Error += Watcher_Error;
+                string? path = fi.Directory?.FullName;
+                string filename = fi.Name;
 
-                _watcher.Filter = filename;
+                // start reading at end of file
+                _lastPosition = fi.Length;
 
-                _watcher.IncludeSubdirectories = false;
-                _watcher.EnableRaisingEvents = true;
+                if (path != null)
+                {
+                    _watcher = new FileSystemWatcher(path);
+
+                    // maximize buffer
+                    _watcher.InternalBufferSize = 65536;
+
+                    _watcher.NotifyFilter = NotifyFilters.Attributes
+                                         | NotifyFilters.CreationTime
+                                         | NotifyFilters.DirectoryName
+                                         | NotifyFilters.FileName
+                                         | NotifyFilters.LastAccess
+                                         | NotifyFilters.LastWrite
+                                         | NotifyFilters.Security
+                                         | NotifyFilters.Size;
+
+                    _watcher.Changed += Watcher_Changed;
+                    _watcher.Created += Watcher_Created;
+                    _watcher.Deleted += Watcher_Deleted;
+                    _watcher.Renamed += Watcher_Renamed;
+                    _watcher.Error += Watcher_Error;
+
+                    _watcher.Filter = filename;
+
+                    _watcher.IncludeSubdirectories = false;
+                    _watcher.EnableRaisingEvents = true;
+                }
             }
+            else
+                Application.Exit();
         }
 
         private void Watcher_Error(object sender, ErrorEventArgs e)
